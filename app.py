@@ -4,17 +4,16 @@ from groq import Groq
 from fpdf import FPDF
 from supabase import create_client, Client
 import pandas as pd
-from dotenv import load_dotenv
 import os
 
 load_dotenv()  # reads .env file
 
 # --- CONFIGURATION (Use st.secrets in production!) ---
 
-OCR_API_KEY = os.getenv("OCR_API_KEY")
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+OCR_API_KEY = st.secrets["OCR_API_KEY"]
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 # Initialize Clients
 client = Groq(api_key=GROQ_API_KEY)
