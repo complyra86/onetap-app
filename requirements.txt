@@ -1,1 +1,6 @@
-streamlit, requests, groq, fpdf2, supabase, pandas
+streamlit
+requests
+groq
+fpdf2
+supabase
+pandas
