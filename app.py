@@ -6,8 +6,6 @@ from supabase import create_client, Client
 import pandas as pd
 import os
 
-load_dotenv()  # reads .env file
-
 # --- CONFIGURATION (Use st.secrets in production!) ---
 
 OCR_API_KEY = st.secrets["OCR_API_KEY"]
