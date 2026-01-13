@@ -93,3 +93,42 @@ with tab2:
         st.subheader("Claims by Provider")
         st.bar_chart(df['insurance_company'].value_counts())
         st.metric("Total Value of Appeals", f"${df['bill_amount'].sum():,.2f}")
+
+
+with st.sidebar:
+    st.image("https://img.icons8.com/fluency/96/shield.png", width=80)
+    st.title("ClaimShield Guide")
+    st.info("""
+    **How it works:**
+    1. **Upload:** Take a clear photo of your bill.
+    2. **Analyze:** Our AI scans for Federal law violations.
+    3. **Appeal:** Download the PDF and send it to your insurer.
+    
+    *Success Rate Tip:* Appeals sent via **Certified Mail** are 40% more likely to get a response!
+    """)
+    
+    st.warning("⚠️ **Reminder:** Always redact your Social Security Number (SSN) before uploading for extra privacy.")
+
+
+    # --- DAY 7: LEGAL FOOTER ---
+st.markdown("---") # Visual separator
+
+st.markdown(
+    """
+    <style>
+    .footer {
+        font-size: 10px;
+        color: #808495;
+        text-align: center;
+    }
+    </style>
+    <div class="footer">
+        <p>🛡️ <b>ClaimShield Pro (v1.0.0)</b> | 2026 Patient Advocacy Project</p>
+        <p><b>LEGAL DISCLAIMER:</b> ClaimShield is an automated document assistant. We are not a law firm, attorney, 
+        or medical professional. This tool generates draft appeals based on the No Surprises Act (42 U.S.C. § 300gg-131). 
+        Users are responsible for verifying the accuracy of all generated documents before submission. 
+        By using this service, you agree that ClaimShield is not liable for any outcomes related to your medical claims.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
