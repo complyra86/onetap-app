@@ -164,5 +164,27 @@ else:
         else:
             st.info("No claims saved yet. Start by uploading a bill in the first tab!")
 
-# --- FOOTER ---
-st.markdown("<br><hr><center><small>ClaimShield is a tool, not a law firm. Verify all documents before submission.</small></center>", unsafe_allow_html=True)
+# --- OFFICIAL COMPLYRA FOOTER ---
+st.markdown("---")
+
+st.markdown(
+    """
+    <style>
+    .complyra-footer {
+        font-size: 12px;
+        color: #5d6d7e;
+        text-align: center;
+        padding: 20px;
+        line-height: 1.6;
+    }
+    </style>
+    <div class="complyra-footer">
+        <p>© 2026 <b>Complyra</b>. All Rights Reserved.</p>
+        <p><i>ClaimShield is a proprietary technology of Complyra. Unauthorized duplication or 
+        commercial use of this platform's AI logic and legal-audit workflows is strictly prohibited.</i></p>
+        <p><b>Legal Notice:</b> This application provides automated assistance based on the No Surprises Act. 
+        It does not constitute legal representation. All generated appeals must be reviewed by the user.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
