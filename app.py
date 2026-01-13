@@ -95,6 +95,48 @@ with tab2:
         st.metric("Total Value of Appeals", f"${df['bill_amount'].sum():,.2f}")
 
 
+
+
+# --- AUTH FUNCTIONS ---
+def sign_up(email, password):
+    try:
+        res = supabase.auth.sign_up({"email": email, "password": password})
+        st.success("Registration successful! You can now log in.")
+    except Exception as e:
+        st.error(f"Error: {e}")
+
+def sign_in(email, password):
+    try:
+        res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+        st.session_state['user'] = res.user
+        st.rerun()
+    except Exception as e:
+        st.error("Invalid login credentials.")
+
+# --- LOGIN UI ---
+if 'user' not in st.session_state:
+    tab1, tab2 = st.tabs(["Login", "Register"])
+    with tab1:
+        email = st.text_input("Email")
+        pw = st.text_input("Password", type="password")
+        if st.button("Log In"):
+            sign_in(email, pw)
+    with tab2:
+        new_email = st.text_input("New Email")
+        new_pw = st.text_input("New Password", type="password")
+        if st.button("Create Account"):
+            sign_up(new_email, new_pw)
+    st.stop() # Stops the rest of the app from loading until logged in
+
+
+if st.session_state['user'].email == "complyra86@gmail.com":
+    st.sidebar.subheader("👑 Admin Mode")
+    if st.sidebar.button("View Global Analytics"):
+        # Fetch all claims from DB instead of just user's claims
+        all_data = supabase.table("claims").select("*").execute()
+        st.write(pd.DataFrame(all_data.data))
+
+
 with st.sidebar:
     st.image("https://img.icons8.com/fluency/96/shield.png", width=80)
     st.title("ClaimShield Guide")
