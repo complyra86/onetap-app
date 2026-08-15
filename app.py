@@ -162,6 +162,27 @@ def logout_user():
         st.session_state.pop(k, None)
     st.rerun()
 
+
+def send_password_reset(email: str):
+    """Email the user a password‑reset link."""
+    try:
+        supabase.auth.reset_password_for_email(email)
+        st.success(f"✅ Password reset link sent to {email}. Check your inbox.")
+    except Exception as e:
+        st.error(f"❌ Could not send reset link: {e}")
+
+
+def update_email(new_email: str):
+    """Change the logged‑in user's login email (requires confirmation)."""
+    try:
+        supabase.auth.update_user({"email": new_email})
+        st.success(
+            f"✅ Confirmation link sent to {new_email}. "
+            "Your login email will change once you confirm it."
+        )
+    except Exception as e:
+        st.error(f"❌ Could not update email: {e}")
+
 # --------------------------------------------------------------
 #  CORE APP FUNCTIONS
 # --------------------------------------------------------------
@@ -227,6 +248,13 @@ if "user" not in st.session_state:
         if mode == "Login":
             if st.button("Unlock Dashboard"):
                 login_user(email, pwd)
+            with st.expander("Forgot your password?"):
+                reset_email = st.text_input("Email for password reset", key="reset_email")
+                if st.button("Send Reset Link"):
+                    if reset_email:
+                        send_password_reset(reset_email)
+                    else:
+                        st.warning("Enter your email above first.")
         else:
             if st.button("Create Free Account"):
                 register_user(email, pwd)
@@ -241,6 +269,21 @@ with st.sidebar:
     st.write(f"👤 **User:** {st.session_state['user'].email}")
     if st.button("Log Out"):
         logout_user()
+
+    with st.expander("⚙️ Account Settings"):
+        st.caption("Change login email")
+        new_email = st.text_input("New email", key="new_email")
+        if st.button("Update Email"):
+            if new_email:
+                update_email(new_email)
+            else:
+                st.warning("Enter a new email above first.")
+
+        st.caption("Change password")
+        st.write("We'll email you a secure reset link.")
+        if st.button("Send Password Reset Link"):
+            send_password_reset(st.session_state["user"].email)
+
     st.divider()
     is_admin = st.session_state["user"].email == "complyra86@gmail.com"
     if is_admin:
@@ -257,33 +300,47 @@ with tab_new:
     with c_left:
         st.header("1️⃣ Scan & Extract")
         uploaded = st.file_uploader(
-            "Upload Medical Bill (JPG/PNG)", type=["jpg", "png"]
+            "Upload Medical Bill (JPG/PNG/PDF)", type=["jpg", "jpeg", "png", "pdf"]
         )
         if uploaded and st.button("Analyze Document"):
             with st.spinner("🔍 Running OCR + LLM…"):
-                payload = {"apikey": OCR_API_KEY, "OCREngine": 2}
+                file_ext = uploaded.name.rsplit(".", 1)[-1].upper()
+                payload = {
+                    "apikey": OCR_API_KEY,
+                    "OCREngine": 2,
+                    "filetype": "PDF" if file_ext == "PDF" else file_ext,
+                }
                 ocr_res = requests.post(
                     "https://api.ocr.space/parse/image",
-                    files={"file": uploaded.getvalue()},
+                    files={"file": (uploaded.name, uploaded.getvalue())},
                     data=payload,
                 ).json()
 
-                if ocr_res.get("ParsedResults"):
-                    txt = ocr_res["ParsedResults"][0]["ParsedText"]
-                    st.session_state["last_text"] = txt
+                if ocr_res.get("IsErroredOnProcessing"):
+                    err_msg = "; ".join(ocr_res.get("ErrorMessage", []) or ["Unknown OCR error"])
+                    st.error(f"❌ OCR failed – {err_msg}")
+                elif ocr_res.get("ParsedResults"):
+                    # Concatenate text across all pages (multi‑page PDFs included)
+                    txt = "\n".join(
+                        page.get("ParsedText", "") for page in ocr_res["ParsedResults"]
+                    ).strip()
+                    if not txt:
+                        st.error("❌ OCR found no readable text – try another file.")
+                    else:
+                        st.session_state["last_text"] = txt
 
-                    prompt = (
-                        f"System: You are a legal advocate. "
-                        f"User: Draft a No Surprises Act appeal for: {txt}"
-                    )
-                    chat = client.chat.completions.create(
-                        model="llama-3.1-70b-versatile",
-                        messages=[{"role": "user", "content": prompt}],
-                    )
-                    st.session_state["last_letter"] = chat.choices[0].message.content
-                    st.success("✅ Analysis ready!")
+                        prompt = (
+                            f"System: You are a legal advocate. "
+                            f"User: Draft a No Surprises Act appeal for: {txt}"
+                        )
+                        chat = client.chat.completions.create(
+                            model="llama-3.1-70b-versatile",
+                            messages=[{"role": "user", "content": prompt}],
+                        )
+                        st.session_state["last_letter"] = chat.choices[0].message.content
+                        st.success("✅ Analysis ready!")
                 else:
-                    st.error("❌ OCR failed – try another image.")
+                    st.error("❌ OCR failed – try another file.")
 
     # ---- 2️⃣ Review / Save ----
     with c_right:
